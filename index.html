@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Teranga Packaging — Gestion &amp; Prospection</title>
+<meta name="theme-color" content="#0A5C34">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="toast-root" class="toast-root"></div>
+
+<div class="app-shell">
+
+  <!-- ============== SIDEBAR ============== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="side-brand">
+      <img src="icons/icon-192.png" alt="">
+      <div class="side-brand-text">
+        <strong>TERANGA</strong>
+        <span>PACKAGING</span>
+      </div>
+    </div>
+
+    <nav class="side-nav" id="sideNav">
+      <button class="nav-item active" data-page="dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+        <span>Tableau de bord</span>
+      </button>
+      <button class="nav-item" data-page="prospection">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 3-6.4 6.5-6.4s6.5 2.8 6.5 6.4"/><path d="M16 4.2c1.6.5 2.7 2 2.7 3.8s-1.1 3.3-2.7 3.8"/><path d="M19 13.8c1.9.7 3.2 2.4 3.5 4.5"/></svg>
+        <span>Prospection</span>
+      </button>
+      <button class="nav-item" data-page="analyse">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V9"/><path d="M11 19V5"/><path d="M18 19v-7"/><path d="M2 19h20"/></svg>
+        <span>Demandes produits</span>
+      </button>
+      <button class="nav-item" data-page="stock">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8l9 5 9-5Z"/><path d="M3 8v8l9 5 9-5V8"/><path d="M12 13v8"/></svg>
+        <span>Stock</span>
+      </button>
+      <button class="nav-item" data-page="budget">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5c0-1.4 1.2-2.2 2.5-2.2 1.5 0 2.5.9 2.5 2 0 2.6-5 1.4-5 4.2 0 1.1 1 2 2.5 2s2.5-.8 2.5-2.2"/></svg>
+        <span>Simulation budget</span>
+      </button>
+      <button class="nav-item" data-page="caisse">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M6 6V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
+        <span>Comptabilité &amp; Caisse</span>
+      </button>
+      <div class="nav-sep"></div>
+      <button class="nav-item" data-page="reglages">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h0a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
+        <span>Réglages</span>
+      </button>
+    </nav>
+
+    <div class="side-foot">
+      <div class="sync-dot" id="syncDot" title="Statut de synchronisation"></div>
+      <span id="syncLabel">Données locales</span>
+    </div>
+  </aside>
+
+  <!-- ============== MAIN ============== -->
+  <main class="main">
+
+    <header class="topbar">
+      <button class="burger" id="burgerBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+      <h1 id="pageTitle">Tableau de bord</h1>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="quickExportBtn">Exporter</button>
+        <button class="btn btn-primary" id="quickAddBtn">+ Nouveau prospect</button>
+      </div>
+    </header>
+
+    <div class="page-scroll">
+
+      <!-- ===================== DASHBOARD ===================== -->
+      <section class="page active" id="page-dashboard">
+        <div class="kpi-row" id="kpiRow"></div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <h3>Produits les plus demandés</h3>
+              <span class="card-sub">Sur l'ensemble des prospects</span>
+            </div>
+            <div class="bars" id="topProductsChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head">
+              <h3>Répartition par secteur</h3>
+              <span class="card-sub">Nombre de prospects</span>
+            </div>
+            <div class="bars" id="sectorChart"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Derniers prospects</h3>
+            <button class="btn btn-ghost btn-sm" data-goto="prospection">Voir tout →</button>
+          </div>
+          <div class="table-wrap"><table class="tbl" id="recentProspectsTbl"></table></div>
+        </div>
+      </section>
+
+      <!-- ===================== PROSPECTION ===================== -->
+      <section class="page" id="page-prospection">
+        <div class="card">
+          <div class="card-head">
+            <h3 id="prospectFormTitle">Nouvelle fiche prospect</h3>
+            <span class="card-sub">Renseignez les informations recueillies sur le terrain</span>
+          </div>
+          <form id="prospectForm" class="form-grid">
+            <input type="hidden" id="pf-id">
+            <div class="f">
+              <label>Date de visite</label>
+              <input type="date" id="pf-date" required>
+            </div>
+            <div class="f">
+              <label>Statut</label>
+              <select id="pf-statut">
+                <option>Nouveau</option>
+                <option>Contacté</option>
+                <option>Intéressé</option>
+                <option>Client</option>
+                <option>Perdu</option>
+              </select>
+            </div>
+            <div class="f">
+              <label>Nom de l'entreprise</label>
+              <input type="text" id="pf-entreprise" placeholder="Ex : Restaurant Chez Fatou" required>
+            </div>
+            <div class="f">
+              <label>Secteur d'activité</label>
+              <select id="pf-secteur"></select>
+            </div>
+            <div class="f">
+              <label>Nom du contact</label>
+              <input type="text" id="pf-contact" placeholder="Ex : Fatou Diop">
+            </div>
+            <div class="f">
+              <label>Téléphone</label>
+              <input type="tel" id="pf-telephone" placeholder="+221 7X XXX XX XX">
+            </div>
+            <div class="f">
+              <label>E-mail</label>
+              <input type="email" id="pf-email" placeholder="contact@entreprise.sn">
+            </div>
+            <div class="f">
+              <label>Adresse / Zone</label>
+              <input type="text" id="pf-adresse" placeholder="Ex : Sacré-Cœur, Dakar">
+            </div>
+
+            <div class="f f-wide">
+              <label>Packaging demandé <span class="hint">(cliquez sur un produit pour l'ajouter, puis précisez la quantité et le format)</span></label>
+              <div class="pkg-tabs" id="pkgTabs">
+                <button type="button" class="pkg-tab active" data-cat="kraft">Kraft</button>
+                <button type="button" class="pkg-tab" data-cat="plastique">Plastique</button>
+                <button type="button" class="pkg-tab" data-cat="cosmetique">Cosmétique</button>
+              </div>
+              <div class="pkg-grid" id="pkgGrid"></div>
+              <div class="pkg-lines" id="pkgLines"></div>
+            </div>
+
+            <div class="f f-wide">
+              <label>Autre packaging (non listé)</label>
+              <input type="text" id="pf-autre" placeholder="Décrire un besoin spécifique non proposé ci-dessus">
+            </div>
+
+            <div class="f f-wide">
+              <label>Notes</label>
+              <textarea id="pf-notes" rows="2" placeholder="Remarques, budget évoqué, échéance..."></textarea>
+            </div>
+
+            <div class="f f-wide form-actions">
+              <button type="button" class="btn btn-ghost" id="pf-cancel">Annuler</button>
+              <button type="submit" class="btn btn-primary">Enregistrer la fiche</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Fiches prospects</h3>
+            <div class="filters">
+              <input type="search" id="pfilter-search" placeholder="Rechercher une entreprise...">
+              <select id="pfilter-secteur"><option value="">Tous secteurs</option></select>
+              <select id="pfilter-statut">
+                <option value="">Tous statuts</option>
+                <option>Nouveau</option><option>Contacté</option><option>Intéressé</option><option>Client</option><option>Perdu</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap"><table class="tbl" id="prospectsTbl"></table></div>
+        </div>
+      </section>
+
+      <!-- ===================== ANALYSE ===================== -->
+      <section class="page" id="page-analyse">
+        <div class="card">
+          <div class="card-head">
+            <h3>Classement des produits les plus demandés</h3>
+            <div class="filters">
+              <select id="afilter-secteur"><option value="">Tous secteurs</option></select>
+              <select id="afilter-cat"><option value="">Toutes matières</option><option value="kraft">Kraft</option><option value="plastique">Plastique</option><option value="cosmetique">Cosmétique</option></select>
+            </div>
+          </div>
+          <div class="table-wrap"><table class="tbl" id="rankingTbl"></table></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head"><h3>Répartition par taille demandée</h3></div>
+            <div class="bars" id="tailleChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><h3>Besoins "Autre" signalés</h3></div>
+            <div class="table-wrap"><table class="tbl" id="autreTbl"></table></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================== STOCK ===================== -->
+      <section class="page" id="page-stock">
+        <div class="kpi-row" id="stockKpiRow"></div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Niveaux de stock</h3>
+            <div class="filters">
+              <input type="search" id="sfilter-search" placeholder="Rechercher un produit...">
+              <button class="btn btn-ghost btn-sm" id="stockReceptionBtn">+ Entrée de stock</button>
+              <button class="btn btn-primary btn-sm" id="stockSortieBtn">💰 Nouvelle vente</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table class="tbl" id="stockTbl"></table></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Historique des mouvements</h3>
+            <span class="card-sub">Achats et sorties de stock</span>
+          </div>
+          <div class="table-wrap"><table class="tbl" id="movementsTbl"></table></div>
+        </div>
+      </section>
+
+      <!-- ===================== BUDGET SIMULATION ===================== -->
+      <section class="page" id="page-budget">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-head">
+              <h3>Simuler un approvisionnement</h3>
+              <span class="card-sub">Estimez le coût réel ou la quantité accessible avec votre budget</span>
+            </div>
+            <form id="budgetForm" class="form-grid">
+              <div class="f f-wide">
+                <label>Mode de calcul</label>
+                <div class="seg" id="budgetMode">
+                  <button type="button" class="seg-btn active" data-mode="qty">Je connais la quantité</button>
+                  <button type="button" class="seg-btn" data-mode="budget">Je connais mon budget</button>
+                </div>
+              </div>
+              <div class="f">
+                <label>Produit</label>
+                <select id="bf-produit"></select>
+              </div>
+              <div class="f">
+                <label>Format</label>
+                <select id="bf-taille"></select>
+              </div>
+              <div class="f">
+                <label>Prix unitaire (FCFA)</label>
+                <input type="number" id="bf-prix" min="0" step="1">
+              </div>
+              <div class="f" id="bf-qty-wrap">
+                <label>Quantité souhaitée</label>
+                <input type="number" id="bf-qty" min="1" step="1" value="1000">
+              </div>
+              <div class="f hidden" id="bf-budget-wrap">
+                <label>Budget disponible (FCFA)</label>
+                <input type="number" id="bf-budget" min="0" step="1">
+              </div>
+              <div class="f">
+                <label>Frais de transit du lot (FCFA)</label>
+                <input type="number" id="bf-transit" min="0" step="1" value="0">
+              </div>
+              <div class="f">
+                <label>Transport vers l'entrepôt (FCFA)</label>
+                <input type="number" id="bf-transport" min="0" step="1" value="0">
+              </div>
+              <div class="f f-wide">
+                <label>Note (fournisseur, référence...)</label>
+                <input type="text" id="bf-note" placeholder="Optionnel">
+              </div>
+              <div class="f f-wide form-actions">
+                <button type="submit" class="btn btn-primary">Calculer &amp; enregistrer</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h3>Résultat</h3></div>
+            <div id="budgetResult" class="budget-result">
+              <p class="empty-hint">Renseignez le formulaire pour voir l'estimation.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Historique des simulations</h3></div>
+          <div class="table-wrap"><table class="tbl" id="simTbl"></table></div>
+        </div>
+      </section>
+
+      <!-- ===================== CAISSE ===================== -->
+      <section class="page" id="page-caisse">
+        <div class="kpi-row" id="caisseKpiRow"></div>
+
+        <div class="card">
+          <div class="card-head">
+            <h3>Transactions</h3>
+            <div class="filters">
+              <select id="cfilter-type"><option value="">Entrées &amp; sorties</option><option value="entree">Entrées</option><option value="sortie">Sorties</option></select>
+              <button class="btn btn-primary btn-sm" id="txAddBtn">+ Nouvelle transaction</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table class="tbl" id="txTbl"></table></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Entrées vs sorties (6 derniers mois)</h3></div>
+          <div class="bars" id="cashChart"></div>
+        </div>
+      </section>
+
+      <!-- ===================== REGLAGES ===================== -->
+      <section class="page" id="page-reglages">
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Catalogue produits &amp; prix</h3>
+              <span class="card-sub">Entrez ici le prix d'achat et le prix de vente de chaque produit, pour chaque format (Petit / Moyen / Grand). Ces prix sont réutilisés dans le Stock et la Simulation budget.</span>
+            </div>
+            <div class="filters">
+              <input type="search" id="catfilter-search" placeholder="Rechercher un produit...">
+            </div>
+          </div>
+          <div class="table-wrap"><table class="tbl" id="catalogTbl"></table></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Sauvegarde &amp; données</h3></div>
+          <div class="settings-rows">
+            <div class="setting-row">
+              <div><strong>Sauvegarde automatique sur disque</strong><p>Enregistre un fichier JSON localement à chaque modification.</p></div>
+              <button class="btn btn-ghost btn-sm" id="fsConnectBtn">Choisir un fichier</button>
+            </div>
+            <div class="setting-row">
+              <div><strong>Exporter les données</strong><p>Télécharger une sauvegarde complète (.json).</p></div>
+              <button class="btn btn-ghost btn-sm" id="exportBtn">Exporter</button>
+            </div>
+            <div class="setting-row">
+              <div><strong>Importer des données</strong><p>Restaurer depuis un fichier .json.</p></div>
+              <label class="btn btn-ghost btn-sm file-btn">Importer<input type="file" id="importInput" accept="application/json" hidden></label>
+            </div>
+            <div class="setting-row danger">
+              <div><strong>Réinitialiser</strong><p>Efface toutes les données locales de l'application.</p></div>
+              <button class="btn btn-danger btn-sm" id="resetBtn">Réinitialiser</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><h3>Synchronisation entre appareils</h3><span class="card-sub">Optionnel — via Firebase Firestore, sans compte</span></div>
+          <div class="form-grid">
+            <div class="f f-wide">
+              <label>Configuration Firebase (JSON)</label>
+              <textarea id="fbConfig" rows="4" placeholder='{"apiKey":"...","projectId":"...", ...}'></textarea>
+            </div>
+            <div class="f">
+              <label>Code de synchronisation</label>
+              <input type="text" id="fbCode" placeholder="Ex : teranga-2025-secret">
+            </div>
+            <div class="f form-actions" style="align-self:end;">
+              <button class="btn btn-ghost" id="fbDisconnectBtn">Déconnecter</button>
+              <button class="btn btn-primary" id="fbConnectBtn">Connecter</button>
+            </div>
+          </div>
+          <p class="hint" id="fbStatus">Non connecté — les données restent uniquement sur cet appareil.</p>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============== MODAL ============== -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
