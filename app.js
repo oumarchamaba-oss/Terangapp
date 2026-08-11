@@ -384,7 +384,8 @@ const PAGE_TITLES = {
   dashboard: "Tableau de bord",
   prospection: "Prospection",
   analyse: "Demandes produits",
-  stock: "Stock",
+  stock: "Stock (entrées)",
+  ventes: "Ventes",
   budget: "Simulation budget",
   caisse: "Comptabilité & Caisse",
   reglages: "Réglages",
@@ -405,6 +406,7 @@ function renderPage(page) {
   if (page === "prospection") renderProspection();
   if (page === "analyse") renderAnalyse();
   if (page === "stock") renderStock();
+  if (page === "ventes") renderVentes();
   if (page === "budget") renderBudget();
   if (page === "caisse") renderCaisse();
   if (page === "reglages") renderReglages();
@@ -659,10 +661,27 @@ function renderAnalyse() {
 }
 
 /* ---------------------------------------------------------------------- */
-/* STOCK */
+/* STOCK (ENTRÉES) */
 /* ---------------------------------------------------------------------- */
 
+function fillProduitTailleSelects(prefix) {
+  const sel = document.getElementById(prefix + "-produit");
+  if (!sel.dataset.filled) {
+    sel.innerHTML = state.produits.map(p => `<option value="${p.id}">${escapeHtml(p.nom)} (${CAT_LABEL[p.cat]})</option>`).join("");
+    sel.dataset.filled = "1";
+  }
+  const tailleSel = document.getElementById(prefix + "-taille");
+  if (!tailleSel.dataset.filled) {
+    tailleSel.innerHTML = TAILLES.map(t => `<option value="${t}">${t}</option>`).join("");
+    tailleSel.dataset.filled = "1";
+  }
+}
+
 function renderStock() {
+  fillProduitTailleSelects("ef");
+  if (!document.getElementById("ef-date").value) document.getElementById("ef-date").value = todayInput();
+  syncEntreeDefaults();
+
   const levels = computeStockLevels();
   const totalValue = levels.reduce((s, v) => s + v.valeur, 0);
   const lowStock = levels.filter(v => v.restant > 0 && v.restant <= v.produit.seuil[v.taille]);
@@ -693,177 +712,320 @@ function renderStock() {
         <td>${fmtFCFA(v.valeur)}</td>
         <td>${fmtFCFA(v.profitTotal)}</td>
         <td>${v.restant <= 0 ? '<span class="pill pill-red">Rupture</span>' : v.restant <= v.produit.seuil[v.taille] ? '<span class="pill pill-gold">Bas</span>' : '<span class="pill pill-green">OK</span>'}</td>
-      </tr>`).join("") : `<tr class="empty-row"><td colspan="9">Aucun mouvement enregistré encore. Utilisez "+ Entrée de stock" pour commencer.</td></tr>`}</tbody>`;
+      </tr>`).join("") : `<tr class="empty-row"><td colspan="9">Aucun mouvement enregistré encore. Utilisez le formulaire ci-dessus pour votre première entrée.</td></tr>`}</tbody>`;
 
-  const moves = [...state.stockMouvements].sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 40);
+  const moves = state.stockMouvements.filter(m => m.type === "entree").sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 40);
   document.getElementById("movementsTbl").innerHTML = `
-    <thead><tr><th>Date</th><th>Produit</th><th>Format</th><th>Type</th><th>Quantité</th><th>Prix unit.</th><th>Bénéfice</th><th>Note</th><th></th></tr></thead>
+    <thead><tr><th>Date</th><th>Produit</th><th>Format</th><th>Quantité</th><th>Prix d'achat</th><th>Note</th><th></th></tr></thead>
     <tbody>${moves.length ? moves.map(m => `
       <tr>
         <td>${fmtDate(m.date)}</td>
         <td>${escapeHtml(productName(m.produitId))}</td>
         <td><span class="pill pill-gray">${m.taille}</span></td>
-        <td>${m.type === "entree" ? '<span class="pill pill-green">Entrée</span>' : '<span class="pill pill-gold">Vente</span>'}</td>
-        <td>${m.type === "entree" ? "+" : "−"}${m.quantite.toLocaleString("fr-FR")}</td>
-        <td>${fmtFCFA(m.type === "entree" ? m.prixAchat : m.prixVente)}</td>
-        <td>${m.type === "vente" ? fmtFCFA(m.profitTotal) : "—"}</td>
+        <td>+${m.quantite.toLocaleString("fr-FR")}</td>
+        <td>${fmtFCFA(m.prixAchat)}</td>
         <td>${escapeHtml(m.note || "—")}</td>
         <td class="row-actions"><button class="icon-btn del del-mvt" data-id="${m.id}" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></td>
-      </tr>`).join("") : `<tr class="empty-row"><td colspan="9">Aucun mouvement enregistré.</td></tr>`}</tbody>`;
+      </tr>`).join("") : `<tr class="empty-row"><td colspan="7">Aucune entrée enregistrée.</td></tr>`}</tbody>`;
 }
 
-function openStockModal(type) {
-  const isEntree = type === "entree";
-  const options = state.produits.map(p => `<option value="${p.id}">${escapeHtml(p.nom)}</option>`).join("");
-  openModal(`
-    <h3>${isEntree ? "Nouvelle entrée de stock (achat)" : "Nouvelle vente"}</h3>
-    <form id="mvtForm" class="form-grid">
-      <div class="f f-wide"><label>Produit</label><select id="mvt-produit">${options}</select></div>
-      <div class="f"><label>Format</label><select id="mvt-taille">${TAILLES.map(t => `<option value="${t}">${t}</option>`).join("")}</select></div>
-      <div class="f"><label>Quantité</label><input type="number" id="mvt-qty" min="1" step="1" value="100" required></div>
-      <div class="f"><label>Prix d'achat unitaire (FCFA)</label><input type="number" id="mvt-prix-achat" min="0" step="1"></div>
-      ${isEntree ? "" : `<div class="f"><label>Prix de vente unitaire (FCFA)</label><input type="number" id="mvt-prix-vente" min="0" step="1"></div>`}
-      <div class="f"><label>Date</label><input type="date" id="mvt-date" value="${todayInput()}"></div>
-      <div class="f f-wide"><label>Note</label><input type="text" id="mvt-note" placeholder="${isEntree ? "Fournisseur, référence..." : "Client, référence..."}"></div>
-      <p class="hint">${isEntree ? "Cette entrée sera aussi enregistrée comme une dépense (\"Achat stock\") dans la caisse." : "Cette vente sera aussi enregistrée comme une recette (\"Vente\") dans la caisse, et le bénéfice sera calculé automatiquement."}</p>
-      <div class="f f-wide form-actions">
-        <button type="button" class="btn btn-ghost" id="mvtCancel">Annuler</button>
-        <button type="submit" class="btn btn-primary">${isEntree ? "Enregistrer l'entrée" : "Enregistrer la vente"}</button>
-      </div>
-    </form>
-  `);
+function syncEntreeDefaults() {
+  const p = findProduit(document.getElementById("ef-produit").value);
+  const t = document.getElementById("ef-taille").value;
+  if (!p) return;
+  document.getElementById("ef-prix").value = p.prix[t].achat || "";
+}
 
-  const produitSel = document.getElementById("mvt-produit");
-  const tailleSel = document.getElementById("mvt-taille");
-  function syncPrix() {
-    const p = findProduit(produitSel.value);
-    const t = tailleSel.value;
-    if (!p) return;
-    document.getElementById("mvt-prix-achat").value = p.prix[t].achat || "";
-    if (!isEntree) document.getElementById("mvt-prix-vente").value = p.prix[t].vente || "";
-  }
-  produitSel.onchange = syncPrix;
-  tailleSel.onchange = syncPrix;
-  syncPrix();
+function submitEntree(e) {
+  e.preventDefault();
+  const produitId = document.getElementById("ef-produit").value;
+  const taille = document.getElementById("ef-taille").value;
+  const quantite = Number(document.getElementById("ef-qty").value) || 0;
+  const prixAchat = Number(document.getElementById("ef-prix").value) || 0;
+  if (quantite <= 0) { toast("Quantité invalide.", "error"); return; }
 
-  document.getElementById("mvtCancel").onclick = closeModal;
-  document.getElementById("mvtForm").onsubmit = (e) => {
-    e.preventDefault();
-    const produitId = produitSel.value;
-    const taille = tailleSel.value;
-    const quantite = Number(document.getElementById("mvt-qty").value) || 0;
-    const prixAchat = Number(document.getElementById("mvt-prix-achat").value) || 0;
-    if (quantite <= 0) { toast("Quantité invalide.", "error"); return; }
+  const p = findProduit(produitId);
+  const date = document.getElementById("ef-date").value || todayInput();
+  const note = document.getElementById("ef-note").value.trim();
 
-    const p = findProduit(produitId);
-    const date = document.getElementById("mvt-date").value || todayInput();
-    const note = document.getElementById("mvt-note").value.trim();
-
-    if (isEntree) {
-      p.prix[taille].achat = prixAchat;
-      state.stockMouvements.push({ id: uid(), produitId, taille, type: "entree", quantite, prixAchat, prixVente: null, profitUnitaire: null, profitTotal: null, date, note });
-      state.caisse.push({ id: uid(), type: "sortie", categorie: "Achat stock", montant: quantite * prixAchat, date, description: `Achat : ${quantite} × ${p.nom} (${taille})` });
-      saveState();
-      closeModal();
-      toast("Entrée de stock enregistrée.");
-    } else {
-      const levels = computeStockLevels();
-      const lvl = levels.find(l => l.produit.id === produitId && l.taille === taille);
-      if (lvl && quantite > lvl.restant) { toast(`Stock insuffisant (restant : ${lvl.restant}).`, "error"); return; }
-
-      const prixVente = Number(document.getElementById("mvt-prix-vente").value) || 0;
-      p.prix[taille].vente = prixVente;
-      const profitUnitaire = prixVente - prixAchat;
-      const profitTotal = profitUnitaire * quantite;
-      state.stockMouvements.push({ id: uid(), produitId, taille, type: "vente", quantite, prixAchat, prixVente, profitUnitaire, profitTotal, date, note });
-      state.caisse.push({ id: uid(), type: "entree", categorie: "Vente", montant: quantite * prixVente, date, description: `Vente : ${quantite} × ${p.nom} (${taille})` });
-      saveState();
-      closeModal();
-      toast(`Vente enregistrée — bénéfice : ${fmtFCFA(profitTotal)}.`);
-    }
-  };
+  p.prix[taille].achat = prixAchat;
+  state.stockMouvements.push({ id: uid(), produitId, taille, type: "entree", quantite, prixAchat, prixVente: null, profitUnitaire: null, profitTotal: null, date, note });
+  state.caisse.push({ id: uid(), type: "sortie", categorie: "Achat stock", montant: quantite * prixAchat, date, description: `Achat : ${quantite} × ${p.nom} (${taille})` });
+  saveState();
+  document.getElementById("entreeForm").reset();
+  document.getElementById("ef-date").value = todayInput();
+  syncEntreeDefaults();
+  toast("Entrée de stock enregistrée.");
 }
 
 /* ---------------------------------------------------------------------- */
-/* BUDGET SIMULATION */
+/* VENTES */
 /* ---------------------------------------------------------------------- */
 
-let budgetMode = "qty";
+function renderVentes() {
+  fillProduitTailleSelects("vf");
+  if (!document.getElementById("vf-date").value) document.getElementById("vf-date").value = todayInput();
+  syncVenteDefaults();
+
+  const profit = computeTotalProfit();
+  const ventesMouvements = state.stockMouvements.filter(m => m.type === "vente");
+  const unitesVendues = ventesMouvements.reduce((s, m) => s + m.quantite, 0);
+  const chiffreAffaires = ventesMouvements.reduce((s, m) => s + m.quantite * (m.prixVente || 0), 0);
+
+  document.getElementById("ventesKpiRow").innerHTML = `
+    <div class="kpi"><div class="kpi-label">Chiffre d'affaires ventes</div><div class="kpi-value">${fmtFCFA(chiffreAffaires)}</div></div>
+    <div class="kpi"><div class="kpi-label">Bénéfice réalisé</div><div class="kpi-value">${fmtFCFA(profit)}</div></div>
+    <div class="kpi"><div class="kpi-label">Unités vendues</div><div class="kpi-value">${unitesVendues.toLocaleString("fr-FR")}</div></div>
+    <div class="kpi"><div class="kpi-label">Ventes enregistrées</div><div class="kpi-value">${ventesMouvements.length}</div></div>
+  `;
+
+  const moves = [...ventesMouvements].sort((a, b) => (b.date || "").localeCompare(a.date || "")).slice(0, 40);
+  document.getElementById("ventesTbl").innerHTML = `
+    <thead><tr><th>Date</th><th>Produit</th><th>Format</th><th>Quantité</th><th>Prix de vente</th><th>Bénéfice</th><th>Note</th><th></th></tr></thead>
+    <tbody>${moves.length ? moves.map(m => `
+      <tr>
+        <td>${fmtDate(m.date)}</td>
+        <td>${escapeHtml(productName(m.produitId))}</td>
+        <td><span class="pill pill-gray">${m.taille}</span></td>
+        <td>−${m.quantite.toLocaleString("fr-FR")}</td>
+        <td>${fmtFCFA(m.prixVente)}</td>
+        <td>${fmtFCFA(m.profitTotal)}</td>
+        <td>${escapeHtml(m.note || "—")}</td>
+        <td class="row-actions"><button class="icon-btn del del-mvt" data-id="${m.id}" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></td>
+      </tr>`).join("") : `<tr class="empty-row"><td colspan="8">Aucune vente enregistrée.</td></tr>`}</tbody>`;
+}
+
+function currentStockDispo(produitId, taille) {
+  const levels = computeStockLevels();
+  const lvl = levels.find(l => l.produit.id === produitId && l.taille === taille);
+  return lvl ? lvl.restant : 0;
+}
+
+function syncVenteDefaults() {
+  const produitId = document.getElementById("vf-produit").value;
+  const taille = document.getElementById("vf-taille").value;
+  const p = findProduit(produitId);
+  if (!p) return;
+  document.getElementById("vf-prix").value = p.prix[taille].vente || "";
+  const dispo = currentStockDispo(produitId, taille);
+  const el = document.getElementById("vf-dispo");
+  el.className = "stock-dispo" + (dispo <= 0 ? " zero" : dispo <= (p.seuil[taille] || 0) ? " low" : "");
+  el.textContent = `Stock disponible : ${dispo.toLocaleString("fr-FR")} unité(s)`;
+  document.getElementById("vf-qty").max = dispo > 0 ? dispo : 1;
+}
+
+function submitVente(e) {
+  e.preventDefault();
+  const produitId = document.getElementById("vf-produit").value;
+  const taille = document.getElementById("vf-taille").value;
+  const quantite = Number(document.getElementById("vf-qty").value) || 0;
+  const prixVente = Number(document.getElementById("vf-prix").value) || 0;
+  if (quantite <= 0) { toast("Quantité invalide.", "error"); return; }
+
+  const dispo = currentStockDispo(produitId, taille);
+  if (quantite > dispo) { toast(`Stock insuffisant — il ne reste que ${dispo} unité(s) pour ce format.`, "error"); return; }
+
+  const p = findProduit(produitId);
+  const date = document.getElementById("vf-date").value || todayInput();
+  const note = document.getElementById("vf-note").value.trim();
+  const prixAchat = p.prix[taille].achat || 0;
+
+  p.prix[taille].vente = prixVente;
+  const profitUnitaire = prixVente - prixAchat;
+  const profitTotal = profitUnitaire * quantite;
+  state.stockMouvements.push({ id: uid(), produitId, taille, type: "vente", quantite, prixAchat, prixVente, profitUnitaire, profitTotal, date, note });
+  state.caisse.push({ id: uid(), type: "entree", categorie: "Vente", montant: quantite * prixVente, date, description: `Vente : ${quantite} × ${p.nom} (${taille})` });
+  saveState();
+  document.getElementById("venteForm").reset();
+  document.getElementById("vf-date").value = todayInput();
+  syncVenteDefaults();
+  toast(`Vente enregistrée — bénéfice : ${fmtFCFA(profitTotal)}.`);
+}
+
+/* ---------------------------------------------------------------------- */
+/* BUDGET SIMULATION (multi-produits) */
+/* ---------------------------------------------------------------------- */
+
+let budgetMode = "budget"; // "budget" | "qty"
+let feeLines = [{ label: "Transit", montant: 0 }, { label: "Transport", montant: 0 }];
+let simLines = [];
+let lastSimResult = null;
 
 function renderBudget() {
-  const sel = document.getElementById("bf-produit");
-  sel.innerHTML = state.produits.map(p => `<option value="${p.id}">${escapeHtml(p.nom)} (${CAT_LABEL[p.cat]})</option>`).join("");
-  const tailleSel = document.getElementById("bf-taille");
-  if (!tailleSel.dataset.filled) {
-    tailleSel.innerHTML = TAILLES.map(t => `<option value="${t}">${t}</option>`).join("");
-    tailleSel.dataset.filled = "1";
-  }
-  function syncPrix() {
-    const p = findProduit(sel.value);
-    if (!p) return;
-    document.getElementById("bf-prix").value = p.prix[tailleSel.value].achat || "";
-  }
-  sel.onchange = syncPrix;
-  tailleSel.onchange = syncPrix;
-  if (!sel.dataset.bound) { sel.dataset.bound = "1"; syncPrix(); }
+  document.getElementById("bf-budget-wrap").classList.toggle("hidden", budgetMode !== "budget");
+  if (!feeLines.length) feeLines = [{ label: "Transit", montant: 0 }, { label: "Transport", montant: 0 }];
+  if (!simLines.length) simLines = [{ produitId: state.produits[0].id, taille: "Petit", prixUnitaire: 0, pct: 100, quantite: 100 }];
+  renderFeeLines();
+  renderSimLines();
 
   const sims = [...state.simulations].sort((a, b) => (b.date || "").localeCompare(a.date || ""));
   document.getElementById("simTbl").innerHTML = `
-    <thead><tr><th>Date</th><th>Produit</th><th>Format</th><th>Quantité</th><th>Prix unit.</th><th>Coût total</th><th>Coût unit. réel</th><th></th></tr></thead>
+    <thead><tr><th>Date</th><th>Mode</th><th>Produits</th><th>Budget / Coût total</th><th>Frais</th><th></th></tr></thead>
     <tbody>${sims.length ? sims.map(s => `
       <tr>
         <td>${fmtDate(s.date)}</td>
-        <td>${escapeHtml(productName(s.produitId))}</td>
-        <td><span class="pill pill-gray">${s.taille || "—"}</span></td>
-        <td>${s.quantite.toLocaleString("fr-FR")}</td>
-        <td>${fmtFCFA(s.prixUnitaire)}</td>
-        <td><strong>${fmtFCFA(s.coutTotal)}</strong></td>
-        <td>${fmtFCFA(s.coutUnitaireReel)}</td>
-        <td class="row-actions"><button class="icon-btn del del-sim" data-id="${s.id}" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button></td>
-      </tr>`).join("") : `<tr class="empty-row"><td colspan="8">Aucune simulation enregistrée.</td></tr>`}</tbody>`;
+        <td>${s.mode === "budget" ? '<span class="pill pill-gold">Budget connu</span>' : '<span class="pill pill-green">Quantités connues</span>'}</td>
+        <td>${s.lines.length} produit(s)</td>
+        <td><strong>${fmtFCFA(s.mode === "budget" ? s.budgetTotal : s.results.grandTotal)}</strong></td>
+        <td>${fmtFCFA(s.results.totalFrais)}</td>
+        <td class="row-actions">
+          <button class="icon-btn view-sim" data-id="${s.id}" title="Revoir le détail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="icon-btn del del-sim" data-id="${s.id}" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></button>
+        </td>
+      </tr>`).join("") : `<tr class="empty-row"><td colspan="6">Aucune simulation enregistrée.</td></tr>`}</tbody>`;
 }
 
-function calcBudget() {
-  const produitId = document.getElementById("bf-produit").value;
-  const taille = document.getElementById("bf-taille").value;
-  const prix = Number(document.getElementById("bf-prix").value) || 0;
-  const transit = Number(document.getElementById("bf-transit").value) || 0;
-  const transport = Number(document.getElementById("bf-transport").value) || 0;
-  const fraisFixes = transit + transport;
+function renderFeeLines() {
+  document.getElementById("feeLines").innerHTML = feeLines.map((f, i) => `
+    <div class="feeline" data-idx="${i}">
+      <input type="text" class="feeline-label" data-idx="${i}" value="${escapeHtml(f.label)}" placeholder="Ex : Douane, Assurance...">
+      <input type="number" class="feeline-montant" data-idx="${i}" min="0" step="1" value="${f.montant}" placeholder="Montant (FCFA)">
+      <button type="button" class="icon-btn del feeline-del" data-idx="${i}" title="Retirer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+    </div>`).join("");
+}
 
-  if (prix <= 0) { toast("Renseignez un prix unitaire.", "error"); return null; }
+function renderSimLines() {
+  const isBudget = budgetMode === "budget";
+  document.getElementById("simLineHead").querySelector(".sim-col-budget").classList.toggle("hidden", !isBudget);
+  document.getElementById("simLineHead").querySelector(".sim-col-qty").classList.toggle("hidden", isBudget);
 
-  let quantite, coutTotal, coutUnitaireReel, budgetDisponible = null;
+  document.getElementById("simLines").innerHTML = simLines.map((l, i) => `
+    <div class="simline" data-idx="${i}">
+      <select class="simline-produit" data-idx="${i}">
+        ${state.produits.map(p => `<option value="${p.id}" ${p.id === l.produitId ? "selected" : ""}>${escapeHtml(p.nom)}</option>`).join("")}
+      </select>
+      <select class="simline-taille" data-idx="${i}">
+        ${TAILLES.map(t => `<option value="${t}" ${t === l.taille ? "selected" : ""}>${t}</option>`).join("")}
+      </select>
+      <input type="number" class="simline-prix" data-idx="${i}" min="0" step="1" value="${l.prixUnitaire}" placeholder="FCFA">
+      <input type="number" class="simline-pct ${isBudget ? "" : "hidden"}" data-idx="${i}" min="0" max="100" step="1" value="${l.pct}" placeholder="%">
+      <input type="number" class="simline-qty ${isBudget ? "hidden" : ""}" data-idx="${i}" min="1" step="1" value="${l.quantite}" placeholder="Quantité">
+      <button type="button" class="icon-btn del simline-del" data-idx="${i}" title="Retirer">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+      </button>
+    </div>`).join("");
+}
 
-  if (budgetMode === "qty") {
-    quantite = Number(document.getElementById("bf-qty").value) || 0;
-    if (quantite <= 0) { toast("Renseignez une quantité.", "error"); return null; }
-    coutTotal = quantite * prix + fraisFixes;
-    coutUnitaireReel = coutTotal / quantite;
+function syncSimLinePrix(idx) {
+  const l = simLines[idx];
+  const p = findProduit(l.produitId);
+  if (p && !l.prixUnitaire) l.prixUnitaire = p.prix[l.taille].achat || 0;
+}
+
+function computeSimulation() {
+  const totalFrais = feeLines.reduce((s, f) => s + (Number(f.montant) || 0), 0);
+
+  if (budgetMode === "budget") {
+    const budgetTotal = Number(document.getElementById("bf-budget").value) || 0;
+    if (budgetTotal <= 0) { toast("Renseignez un budget total.", "error"); return null; }
+    const budgetNet = budgetTotal - totalFrais;
+    if (budgetNet <= 0) { toast("Le budget ne couvre même pas les frais.", "error"); return null; }
+
+    const totalPct = simLines.reduce((s, l) => s + (Number(l.pct) || 0), 0);
+    const lignes = simLines.map(l => {
+      const montantAlloue = budgetNet * ((Number(l.pct) || 0) / 100);
+      const prix = Number(l.prixUnitaire) || 0;
+      const quantiteAccessible = prix > 0 ? Math.floor(montantAlloue / prix) : 0;
+      const feeShare = totalFrais * ((Number(l.pct) || 0) / 100);
+      const coutUnitaireReel = quantiteAccessible > 0 ? (montantAlloue + feeShare) / quantiteAccessible : 0;
+      return { ...l, montantAlloue, quantiteAccessible, coutUnitaireReel, feeShare };
+    });
+    const totalAlloue = lignes.reduce((s, l) => s + l.montantAlloue, 0);
+
+    return {
+      mode: "budget", budgetTotal, totalFrais, budgetNet, totalPct,
+      resteNonAlloue: budgetNet - totalAlloue, lignes,
+    };
   } else {
-    budgetDisponible = Number(document.getElementById("bf-budget").value) || 0;
-    if (budgetDisponible <= fraisFixes) { toast("Le budget ne couvre même pas les frais fixes.", "error"); return null; }
-    quantite = Math.floor((budgetDisponible - fraisFixes) / prix);
-    coutTotal = quantite * prix + fraisFixes;
-    coutUnitaireReel = quantite > 0 ? coutTotal / quantite : 0;
+    const lignes = simLines.map(l => {
+      const prix = Number(l.prixUnitaire) || 0;
+      const quantite = Number(l.quantite) || 0;
+      const sousTotal = prix * quantite;
+      return { ...l, sousTotal };
+    });
+    const sumSousTotal = lignes.reduce((s, l) => s + l.sousTotal, 0) || 1;
+    lignes.forEach(l => {
+      const feeShare = totalFrais * (l.sousTotal / sumSousTotal);
+      l.feeShare = feeShare;
+      l.coutUnitaireReel = l.quantite > 0 ? (l.sousTotal + feeShare) / l.quantite : 0;
+    });
+    const grandTotal = sumSousTotal + totalFrais;
+
+    return { mode: "qty", totalFrais, lignes, sumSousTotal, grandTotal };
+  }
+}
+
+function renderBudgetResult(res) {
+  const box = document.getElementById("budgetResult");
+  const lignesRows = res.lignes.map(l => `
+    <tr>
+      <td>${escapeHtml(productName(l.produitId))}</td>
+      <td><span class="pill pill-gray">${l.taille}</span></td>
+      <td>${fmtFCFA(l.prixUnitaire)}</td>
+      ${res.mode === "budget" ? `
+        <td>${l.pct}%</td>
+        <td>${fmtFCFA(l.montantAlloue)}</td>
+        <td><strong>${l.quantiteAccessible.toLocaleString("fr-FR")}</strong></td>
+      ` : `
+        <td>${l.quantite.toLocaleString("fr-FR")}</td>
+        <td>${fmtFCFA(l.sousTotal)}</td>
+      `}
+      <td>${fmtFCFA(l.coutUnitaireReel)}</td>
+    </tr>`).join("");
+
+  const head = res.mode === "budget"
+    ? `<tr><th>Produit</th><th>Format</th><th>Prix unit.</th><th>% budget</th><th>Montant alloué</th><th>Quantité accessible</th><th>Coût unit. réel</th></tr>`
+    : `<tr><th>Produit</th><th>Format</th><th>Prix unit.</th><th>Quantité</th><th>Sous-total</th><th>Coût unit. réel</th></tr>`;
+
+  let summary = "";
+  if (res.mode === "budget") {
+    summary = `
+      <div class="result-line"><span class="rl-label">Budget total</span><span class="rl-val">${fmtFCFA(res.budgetTotal)}</span></div>
+      <div class="result-line"><span class="rl-label">Total des frais</span><span class="rl-val">${fmtFCFA(res.totalFrais)}</span></div>
+      <div class="result-line"><span class="rl-label">Budget net à répartir</span><span class="rl-val">${fmtFCFA(res.budgetNet)}</span></div>
+      <div class="result-line ${res.totalPct > 100 ? "warn" : ""}"><span class="rl-label">Total réparti</span><span class="rl-val">${res.totalPct}%</span></div>
+      <div class="result-line big"><span class="rl-label">${res.resteNonAlloue >= 0 ? "Reste non alloué" : "Dépassement"}</span><span class="rl-val">${fmtFCFA(Math.abs(res.resteNonAlloue))}</span></div>
+    `;
+  } else {
+    summary = `
+      <div class="result-line"><span class="rl-label">Coût produits (hors frais)</span><span class="rl-val">${fmtFCFA(res.sumSousTotal)}</span></div>
+      <div class="result-line"><span class="rl-label">Total des frais</span><span class="rl-val">${fmtFCFA(res.totalFrais)}</span></div>
+      <div class="result-line big"><span class="rl-label">Budget total nécessaire</span><span class="rl-val">${fmtFCFA(res.grandTotal)}</span></div>
+    `;
   }
 
-  return {
-    id: uid(), date: todayInput(), produitId, taille, prixUnitaire: prix,
-    transit, transport, quantite, coutTotal, coutUnitaireReel, budgetDisponible,
-    note: document.getElementById("bf-note").value.trim(),
-  };
+  box.innerHTML = `
+    <div class="table-wrap"><table class="tbl"><thead>${head}</thead><tbody>${lignesRows}</tbody></table></div>
+    <div style="margin-top:14px;">${summary}</div>
+  `;
 }
 
-function renderBudgetResult(sim) {
-  document.getElementById("budgetResult").innerHTML = `
-    <div class="result-line"><span class="rl-label">Produit</span><span class="rl-val" style="font-size:14px;">${escapeHtml(productName(sim.produitId))} — ${sim.taille}</span></div>
-    <div class="result-line"><span class="rl-label">Quantité ${budgetMode === "budget" ? "accessible" : "commandée"}</span><span class="rl-val">${sim.quantite.toLocaleString("fr-FR")} unités</span></div>
-    <div class="result-line"><span class="rl-label">Coût produits (hors frais)</span><span class="rl-val">${fmtFCFA(sim.quantite * sim.prixUnitaire)}</span></div>
-    <div class="result-line"><span class="rl-label">Frais de transit + transport</span><span class="rl-val">${fmtFCFA(sim.transit + sim.transport)}</span></div>
-    <div class="result-line big"><span class="rl-label">Coût total</span><span class="rl-val">${fmtFCFA(sim.coutTotal)}</span></div>
-    <div class="result-line big"><span class="rl-label">Coût unitaire réel</span><span class="rl-val">${fmtFCFA(sim.coutUnitaireReel)}</span></div>
-  `;
+function saveSimulation(res) {
+  const sim = {
+    id: uid(), date: todayInput(), mode: res.mode,
+    budgetTotal: res.mode === "budget" ? res.budgetTotal : null,
+    fees: feeLines.map(f => ({ ...f })),
+    lines: simLines.map(l => ({ ...l })),
+    results: res,
+  };
+  state.simulations.push(sim);
+  saveState();
+  toast("Simulation enregistrée.");
+}
+
+function viewSimulation(sim) {
+  budgetMode = sim.mode;
+  document.querySelectorAll("#budgetMode .seg-btn").forEach(b => b.classList.toggle("active", b.dataset.mode === sim.mode));
+  document.getElementById("bf-budget-wrap").classList.toggle("hidden", sim.mode !== "budget");
+  if (sim.mode === "budget") document.getElementById("bf-budget").value = sim.budgetTotal;
+  feeLines = sim.fees.map(f => ({ ...f }));
+  simLines = sim.lines.map(l => ({ ...l }));
+  renderFeeLines();
+  renderSimLines();
+  renderBudgetResult(sim.results);
+  document.getElementById("page-budget").scrollIntoView({ behavior: "smooth" });
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1081,41 +1243,111 @@ function bindEvents() {
   document.getElementById("afilter-secteur").addEventListener("change", renderAnalyse);
   document.getElementById("afilter-cat").addEventListener("change", renderAnalyse);
 
-  /* ---- Stock ---- */
+  /* ---- Stock (entrées) ---- */
   document.getElementById("sfilter-search").addEventListener("input", renderStock);
-  document.getElementById("stockReceptionBtn").onclick = () => openStockModal("entree");
-  document.getElementById("stockSortieBtn").onclick = () => openStockModal("vente");
+  document.getElementById("entreeForm").addEventListener("submit", submitEntree);
+  document.getElementById("ef-produit").addEventListener("change", syncEntreeDefaults);
+  document.getElementById("ef-taille").addEventListener("change", syncEntreeDefaults);
   document.getElementById("movementsTbl").addEventListener("click", (e) => {
     const btn = e.target.closest(".del-mvt");
-    if (btn && confirm("Supprimer ce mouvement ? (la transaction de caisse liée ne sera pas supprimée automatiquement)")) {
+    if (btn && confirm("Supprimer cette entrée ? (la dépense de caisse liée ne sera pas supprimée automatiquement)")) {
       state.stockMouvements = state.stockMouvements.filter(m => m.id !== btn.dataset.id);
       saveState();
     }
   });
 
-  /* ---- Budget ---- */
+  /* ---- Ventes ---- */
+  document.getElementById("venteForm").addEventListener("submit", submitVente);
+  document.getElementById("vf-produit").addEventListener("change", syncVenteDefaults);
+  document.getElementById("vf-taille").addEventListener("change", syncVenteDefaults);
+  document.getElementById("ventesTbl").addEventListener("click", (e) => {
+    const btn = e.target.closest(".del-mvt");
+    if (btn && confirm("Supprimer cette vente ? (la recette de caisse liée ne sera pas supprimée automatiquement)")) {
+      state.stockMouvements = state.stockMouvements.filter(m => m.id !== btn.dataset.id);
+      saveState();
+    }
+  });
+
+  /* ---- Budget (simulation multi-produits) ---- */
   document.getElementById("budgetMode").addEventListener("click", (e) => {
     const btn = e.target.closest(".seg-btn");
     if (!btn) return;
     budgetMode = btn.dataset.mode;
     document.querySelectorAll("#budgetMode .seg-btn").forEach(b => b.classList.toggle("active", b === btn));
-    document.getElementById("bf-qty-wrap").classList.toggle("hidden", budgetMode !== "qty");
     document.getElementById("bf-budget-wrap").classList.toggle("hidden", budgetMode !== "budget");
+    renderSimLines();
   });
-  document.getElementById("budgetForm").addEventListener("submit", (e) => {
-    e.preventDefault();
-    const sim = calcBudget();
-    if (!sim) return;
-    state.simulations.push(sim);
-    saveState();
-    renderBudgetResult(sim);
-    toast("Simulation enregistrée.");
+
+  document.getElementById("addFeeBtn").onclick = () => {
+    feeLines.push({ label: "", montant: 0 });
+    renderFeeLines();
+  };
+  document.getElementById("feeLines").addEventListener("input", (e) => {
+    const label = e.target.closest(".feeline-label");
+    const montant = e.target.closest(".feeline-montant");
+    if (label) feeLines[Number(label.dataset.idx)].label = label.value;
+    if (montant) feeLines[Number(montant.dataset.idx)].montant = Number(montant.value) || 0;
   });
+  document.getElementById("feeLines").addEventListener("click", (e) => {
+    const btn = e.target.closest(".feeline-del");
+    if (btn) { feeLines.splice(Number(btn.dataset.idx), 1); renderFeeLines(); }
+  });
+
+  document.getElementById("addSimLineBtn").onclick = () => {
+    const idx = simLines.length;
+    simLines.push({ produitId: state.produits[0].id, taille: "Petit", prixUnitaire: 0, pct: 0, quantite: 100 });
+    syncSimLinePrix(idx);
+    renderSimLines();
+  };
+  document.getElementById("simLines").addEventListener("input", (e) => {
+    const prix = e.target.closest(".simline-prix");
+    const pct = e.target.closest(".simline-pct");
+    const qty = e.target.closest(".simline-qty");
+    if (prix) simLines[Number(prix.dataset.idx)].prixUnitaire = Number(prix.value) || 0;
+    if (pct) simLines[Number(pct.dataset.idx)].pct = Number(pct.value) || 0;
+    if (qty) simLines[Number(qty.dataset.idx)].quantite = Number(qty.value) || 0;
+  });
+  document.getElementById("simLines").addEventListener("change", (e) => {
+    const produit = e.target.closest(".simline-produit");
+    const taille = e.target.closest(".simline-taille");
+    if (produit) {
+      const idx = Number(produit.dataset.idx);
+      simLines[idx].produitId = produit.value;
+      simLines[idx].prixUnitaire = 0;
+      syncSimLinePrix(idx);
+      renderSimLines();
+    }
+    if (taille) {
+      const idx = Number(taille.dataset.idx);
+      simLines[idx].taille = taille.value;
+      simLines[idx].prixUnitaire = 0;
+      syncSimLinePrix(idx);
+      renderSimLines();
+    }
+  });
+  document.getElementById("simLines").addEventListener("click", (e) => {
+    const btn = e.target.closest(".simline-del");
+    if (btn) { simLines.splice(Number(btn.dataset.idx), 1); renderSimLines(); }
+  });
+
+  document.getElementById("calcSimBtn").onclick = () => {
+    const res = computeSimulation();
+    if (!res) return;
+    lastSimResult = res;
+    renderBudgetResult(res);
+    saveSimulation(res);
+    renderBudget();
+  };
   document.getElementById("simTbl").addEventListener("click", (e) => {
-    const btn = e.target.closest(".del-sim");
-    if (btn && confirm("Supprimer cette simulation ?")) {
-      state.simulations = state.simulations.filter(s => s.id !== btn.dataset.id);
+    const delBtn = e.target.closest(".del-sim");
+    const viewBtn = e.target.closest(".view-sim");
+    if (delBtn && confirm("Supprimer cette simulation ?")) {
+      state.simulations = state.simulations.filter(s => s.id !== delBtn.dataset.id);
       saveState();
+    }
+    if (viewBtn) {
+      const sim = state.simulations.find(s => s.id === viewBtn.dataset.id);
+      if (sim) viewSimulation(sim);
     }
   });
 

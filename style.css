@@ -210,6 +210,30 @@ p{margin:0;}
 .result-line .rl-label{font-size:13px;color:var(--ink-soft);}
 .result-line .rl-val{font-size:16px;font-weight:700;font-family:'Space Mono',monospace;}
 .result-line.big .rl-val{font-size:22px;color:var(--green-700);}
+.result-line.warn .rl-val{color:var(--red);}
+
+/* fee lines (budget simulation) */
+.fee-lines{display:flex;flex-direction:column;gap:8px;}
+.feeline{display:grid;grid-template-columns:1fr 160px 34px;gap:8px;align-items:center;min-width:0;}
+.feeline input{min-width:0;}
+.feeline input{border:1.5px solid var(--line);border-radius:7px;padding:8px 10px;font-size:13px;}
+
+/* simulation product lines */
+.simline{
+  display:grid;grid-template-columns:1.6fr 110px 130px 110px 34px;gap:8px;align-items:center;
+  padding:8px 10px;background:var(--white);border:1.5px solid var(--line);border-radius:8px;margin-bottom:6px;
+}
+.simline-head{background:none;border:none;padding:0 10px;font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:2px;}
+.simline select,.simline input{border:1.5px solid var(--line);border-radius:7px;padding:7px 8px;font-size:12.5px;width:100%;}
+.sim-lines{display:flex;flex-direction:column;}
+
+/* stock disponible indicator (page Ventes) */
+.stock-dispo{
+  background:var(--green-100);color:var(--green-900);font-weight:700;font-size:13.5px;
+  padding:10px 14px;border-radius:9px;display:inline-block;
+}
+.stock-dispo.low{background:#FDF1DA;color:var(--gold-dark);}
+.stock-dispo.zero{background:#FBEAEA;color:var(--red);}
 
 /* tags */
 .tag-input{display:flex;flex-wrap:wrap;gap:8px;min-height:32px;}
@@ -248,6 +272,11 @@ p{margin:0;}
   .grid-2{grid-template-columns:1fr;}
   .form-grid{grid-template-columns:1fr;}
   .pkg-grid{grid-template-columns:repeat(2,1fr);}
+  .simline,.simline-head{grid-template-columns:1fr;}
+  .simline > *{width:100%;}
+  .simline-head{display:none;}
+  .feeline{grid-template-columns:1fr;}
+  .feeline .feeline-del{justify-self:start;}
 }
 
 @media (max-width:860px){

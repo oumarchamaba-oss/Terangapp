@@ -3,7 +3,7 @@
    Incrémentez CACHE_VERSION à chaque nouvelle livraison pour forcer le
    rafraîchissement du cache chez les utilisateurs. */
 
-const CACHE_VERSION = "teranga-app-v2";
+const CACHE_VERSION = "teranga-app-v4";
 const CORE_ASSETS = [
   "./index.html",
   "./style.css",
