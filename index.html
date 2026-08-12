@@ -58,6 +58,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="13" rx="2"/><circle cx="12" cy="12.5" r="3"/><path d="M6 6V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1"/></svg>
         <span>Comptabilité &amp; Caisse</span>
       </button>
+      <button class="nav-item" data-page="commande">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z"/><path d="M14 2v5h5"/><path d="M9 13h6M9 17h6M9 9h2"/></svg>
+        <span>Commande fournisseur</span>
+      </button>
       <div class="nav-sep"></div>
       <button class="nav-item" data-page="reglages">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h0a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v0a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
@@ -382,6 +386,53 @@
         </div>
       </section>
 
+      <!-- ===================== COMMANDE FOURNISSEUR ===================== -->
+      <section class="page" id="page-commande">
+        <div class="card">
+          <div class="card-head">
+            <h3>Bon de commande fournisseur</h3>
+            <span class="card-sub">Sélectionnez les produits, formats et quantités à transmettre à votre fournisseur</span>
+          </div>
+
+          <div class="form-grid" style="margin-bottom:16px;">
+            <div class="f">
+              <label>Langue du document</label>
+              <div class="seg" id="ordLang">
+                <button type="button" class="seg-btn active" data-lang="fr">Français</button>
+                <button type="button" class="seg-btn" data-lang="en">English</button>
+              </div>
+            </div>
+            <div class="f">
+              <label>Date</label>
+              <input type="date" id="ord-date">
+            </div>
+            <div class="f">
+              <label>Fournisseur (nom)</label>
+              <input type="text" id="ord-fournisseur" placeholder="Ex : ABC Packaging Supplies">
+            </div>
+            <div class="f">
+              <label>Référence / note</label>
+              <input type="text" id="ord-ref" placeholder="Optionnel">
+            </div>
+          </div>
+
+          <div class="f f-wide">
+            <label>Produits à commander</label>
+            <div class="pkg-tabs" id="ordTabs">
+              <button type="button" class="pkg-tab active" data-cat="kraft">Kraft</button>
+              <button type="button" class="pkg-tab" data-cat="plastique">Plastique</button>
+              <button type="button" class="pkg-tab" data-cat="cosmetique">Cosmétique</button>
+            </div>
+            <div class="pkg-grid" id="ordGrid"></div>
+            <div class="pkg-lines" id="ordLines"></div>
+          </div>
+
+          <div class="form-actions" style="margin-top:16px;">
+            <button type="button" class="btn btn-primary" id="genPdfBtn">📄 Générer le PDF</button>
+          </div>
+        </div>
+      </section>
+
       <!-- ===================== REGLAGES ===================== -->
       <section class="page" id="page-reglages">
 
@@ -449,6 +500,9 @@
 <div class="modal-backdrop" id="modalBackdrop">
   <div class="modal" id="modalBox"></div>
 </div>
+
+<!-- ============== ZONE D'IMPRESSION (PDF) ============== -->
+<div id="printArea" class="print-only"></div>
 
 <script src="app.js"></script>
 </body>

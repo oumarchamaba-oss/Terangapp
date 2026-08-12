@@ -156,7 +156,7 @@ p{margin:0;}
 .empty-row td{text-align:center;color:var(--ink-soft);padding:26px 0;}
 
 /* product thumbnails */
-.prod-thumb{border-radius:6px;object-fit:cover;flex:none;background:var(--green-100);display:inline-block;vertical-align:middle;}
+.prod-thumb{border-radius:6px;object-fit:contain;flex:none;background:var(--green-100);display:inline-block;vertical-align:middle;padding:2px;box-sizing:border-box;}
 .prod-thumb-placeholder{display:inline-flex;align-items:center;justify-content:center;color:var(--green-700);}
 .prod-thumb-placeholder svg{width:60%;height:60%;}
 
@@ -186,7 +186,7 @@ p{margin:0;}
 .seg-btn.active{background:var(--green-600);color:var(--white);}
 
 /* product thumbnails */
-.prod-thumb{border-radius:7px;object-fit:cover;flex:none;background:var(--green-100);}
+.prod-thumb{border-radius:7px;object-fit:contain;flex:none;background:var(--green-100);padding:2px;box-sizing:border-box;}
 .prod-thumb-empty{display:inline-block;border-radius:7px;background:var(--green-100);}
 .pkg-tabs{display:flex;gap:6px;margin-bottom:10px;}
 .pkg-tab{border:1.5px solid var(--line);background:var(--white);padding:6px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;color:var(--green-900);}
@@ -325,4 +325,33 @@ p{margin:0;}
   .burger{order:0;}
   .seg{width:100%;}
   .seg-btn{flex:1;text-align:center;}
+}
+
+/* ============ IMPRESSION / BON DE COMMANDE PDF ============ */
+.print-only{display:none;}
+
+.pdf-doc{font-family:'Poppins',sans-serif;color:var(--ink);padding:14mm;width:210mm;box-sizing:border-box;}
+.pdf-head{display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--green-900);padding-bottom:10px;margin-bottom:14px;}
+.pdf-brand{display:flex;align-items:center;gap:10px;}
+.pdf-brand img{width:38px;height:38px;object-fit:contain;}
+.pdf-brand div strong{font-size:16px;display:block;}
+.pdf-brand div span{font-size:10px;letter-spacing:.08em;color:var(--green-700);font-family:'Space Mono',monospace;}
+.pdf-contact{text-align:right;font-size:9.5px;color:var(--ink-soft);line-height:1.5;}
+.pdf-title{font-size:20px;font-weight:800;margin-bottom:4px;}
+.pdf-sub{font-size:11px;color:var(--ink-soft);margin-bottom:14px;}
+.pdf-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px;margin-bottom:16px;font-size:11px;background:var(--cream);border-radius:8px;padding:10px 14px;}
+.pdf-meta div strong{color:var(--ink-soft);font-weight:600;margin-right:4px;}
+.pdf-table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px;}
+.pdf-table th{text-align:left;background:var(--green-900);color:#fff;padding:7px 8px;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;}
+.pdf-table td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+.pdf-table img{width:34px;height:34px;object-fit:contain;background:var(--green-100);border-radius:5px;}
+.pdf-table tr:nth-child(even) td{background:#FAFBF8;}
+.pdf-total{display:flex;justify-content:flex-end;gap:10px;font-size:12px;font-weight:700;padding-top:8px;border-top:2px solid var(--ink);}
+.pdf-foot{margin-top:22px;font-size:9px;color:var(--ink-soft);text-align:center;border-top:1px solid var(--line);padding-top:10px;}
+
+@media print{
+  @page{ size:A4; margin:0; }
+  body *{visibility:hidden;}
+  .print-only, .print-only *{visibility:visible;}
+  .print-only{display:block !important;position:absolute;top:0;left:0;}
 }

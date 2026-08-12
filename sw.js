@@ -3,7 +3,7 @@
    Incrémentez CACHE_VERSION à chaque nouvelle livraison pour forcer le
    rafraîchissement du cache chez les utilisateurs. */
 
-const CACHE_VERSION = "teranga-app-v9";
+const CACHE_VERSION = "teranga-app-v11";
 const CORE_ASSETS = [
   "./index.html",
   "./style.css",
@@ -15,8 +15,7 @@ const CORE_ASSETS = [
   "./icons/apple-touch-icon.png",
   "./assets/products/boite-burger.jpg",
   "./assets/products/boite-burger-menu-grand.jpg",
-  "./assets/products/boite-pizza-petit.jpg",
-  "./assets/products/boite-pizza-grand.jpg",
+  "./assets/products/boite-pizza.jpg",
   "./assets/products/boite-gateau-fenetre.jpg",
   "./assets/products/boite-frites.jpg",
   "./assets/products/lunch-box.jpg",
@@ -41,8 +40,6 @@ const CORE_ASSETS = [
   "./assets/products/gobelet-plastique-plat.jpg",
   "./assets/products/gobelet-plastique-sans-couvercle.jpg",
   "./assets/products/pot-sauce-plastique-transparent.jpg",
-  "./assets/products/couvercle-dome-plastique.jpg",
-  "./assets/products/couvercle-plat-plastique.jpg",
   "./assets/products/pot-cosmetique-creme.jpg",
   "./assets/products/flacon-pompe-cosmetique.jpg",
   "./assets/products/flacon-bouchon-basculant.jpg",
