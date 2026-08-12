@@ -3,7 +3,7 @@
    Incrémentez CACHE_VERSION à chaque nouvelle livraison pour forcer le
    rafraîchissement du cache chez les utilisateurs. */
 
-const CACHE_VERSION = "teranga-app-v4";
+const CACHE_VERSION = "teranga-app-v7";
 const CORE_ASSETS = [
   "./index.html",
   "./style.css",
@@ -13,6 +13,24 @@ const CORE_ASSETS = [
   "./icons/icon-512.png",
   "./icons/icon-512-maskable.png",
   "./icons/apple-touch-icon.png",
+  "./assets/products/boite-burger-kraft.jpg",
+  "./assets/products/boite-sandwich-kraft.jpg",
+  "./assets/products/boite-pizza-kraft.jpg",
+  "./assets/products/boite-patisserie-kraft.jpg",
+  "./assets/products/boite-gateau-kraft.jpg",
+  "./assets/products/bol-salade-kraft.jpg",
+  "./assets/products/gobelet-kraft-chaud.jpg",
+  "./assets/products/pot-kraft-couvercle.jpg",
+  "./assets/products/porte-gobelets.jpg",
+  "./assets/products/sac-kraft-poignees.jpg",
+  "./assets/products/bol-kraft-couvercle.jpg",
+  "./assets/products/boite-transparente.jpg",
+  "./assets/products/barquette-noire-compart.jpg",
+  "./assets/products/boite-patisserie-transparente.jpg",
+  "./assets/products/gobelet-pet-dome.jpg",
+  "./assets/products/pot-sauce-transparent.jpg",
+  "./assets/products/barquette-plastique-transparente.jpg",
+  "./assets/products/couverts-jetables.jpg",
 ];
 
 self.addEventListener("install", (event) => {

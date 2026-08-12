@@ -41,6 +41,36 @@ const PRODUCTS = [
 ];
 
 const CAT_LABEL = { kraft: "Kraft", plastique: "Plastique", cosmetique: "Cosmétique" };
+
+const PRODUCT_IMAGES = {
+  "boite-burger-kraft": "assets/products/boite-burger-kraft.jpg",
+  "boite-sandwich-kraft": "assets/products/boite-sandwich-kraft.jpg",
+  "boite-pizza-kraft": "assets/products/boite-pizza-kraft.jpg",
+  "boite-patisserie-kraft": "assets/products/boite-patisserie-kraft.jpg",
+  "boite-gateau-kraft": "assets/products/boite-gateau-kraft.jpg",
+  "bol-salade-kraft": "assets/products/bol-salade-kraft.jpg",
+  "gobelet-kraft-chaud": "assets/products/gobelet-kraft-chaud.jpg",
+  "pot-kraft-couvercle": "assets/products/pot-kraft-couvercle.jpg",
+  "porte-gobelets": "assets/products/porte-gobelets.jpg",
+  "sac-kraft-poignees": "assets/products/sac-kraft-poignees.jpg",
+  "bol-kraft-couvercle": "assets/products/bol-kraft-couvercle.jpg",
+  "boite-transparente": "assets/products/boite-transparente.jpg",
+  "barquette-noire-compart": "assets/products/barquette-noire-compart.jpg",
+  "boite-patisserie-transparente": "assets/products/boite-patisserie-transparente.jpg",
+  "gobelet-pet-dome": "assets/products/gobelet-pet-dome.jpg",
+  "pot-sauce-transparent": "assets/products/pot-sauce-transparent.jpg",
+  "barquette-plastique-transparente": "assets/products/barquette-plastique-transparente.jpg",
+  "couverts-jetables": "assets/products/couverts-jetables.jpg",
+};
+
+
+function productThumb(id, size) {
+  size = size || 40;
+  const src = PRODUCT_IMAGES[id];
+  if (!src) return `<span class="prod-thumb prod-thumb-empty" style="width:${size}px;height:${size}px;"></span>`;
+  return `<img class="prod-thumb" src="${src}" alt="" style="width:${size}px;height:${size}px;" loading="lazy">`;
+}
+
 const TAILLES = ["Petit", "Moyen", "Grand"];
 
 const SECTEURS = [
@@ -502,6 +532,7 @@ function renderPkgPicker() {
   grid.innerHTML = items.map(p => {
     const already = pkgLines.some(l => l.produitId === p.id);
     return `<button type="button" class="pkg-item${already ? " checked" : ""}" data-id="${p.id}">
+      ${productThumb(p.id, 34)}
       <span>${escapeHtml(p.nom)}</span><span class="pkg-item-check">${already ? "✓ ajouté" : "+ ajouter"}</span>
     </button>`;
   }).join("");
@@ -513,22 +544,42 @@ function renderPkgLines() {
     wrap.innerHTML = '<p class="empty-hint">Aucun produit ajouté. Cliquez sur un produit ci-dessus pour l\'ajouter à la demande.</p>';
     return;
   }
-  wrap.innerHTML = `
-    <div class="pkgline pkgline-head">
-      <span>Produit</span><span>Quantité</span><span>Format</span><span></span>
-    </div>
-    ${pkgLines.map((l, i) => `
+  wrap.innerHTML = pkgLines.map((l, i) => {
+    const allChecked = TAILLES.every(t => l.tailles[t].checked);
+    return `
     <div class="pkgline" data-idx="${i}">
-      <span class="pkgline-name">${escapeHtml(productName(l.produitId))}</span>
-      <input type="number" min="1" step="1" class="pkgline-qty" value="${l.quantite}" data-idx="${i}">
-      <select class="pkgline-taille" data-idx="${i}">
-        ${TAILLES.map(t => `<option value="${t}" ${l.taille === t ? "selected" : ""}>${t}</option>`).join("")}
-      </select>
-      <button type="button" class="icon-btn del pkgline-del" data-idx="${i}" title="Retirer">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
-      </button>
-    </div>`).join("")}
-  `;
+      <div class="pkgline-top">
+        ${productThumb(l.produitId, 30)}
+        <span class="pkgline-name">${escapeHtml(productName(l.produitId))}</span>
+        <label class="pkgline-all">
+          <input type="checkbox" class="pkgline-allcheck" data-idx="${i}" ${allChecked ? "checked" : ""}>
+          Toutes les tailles
+        </label>
+        <button type="button" class="icon-btn del pkgline-del" data-idx="${i}" title="Retirer">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+      <div class="pkgline-tailles">
+        ${TAILLES.map(t => `
+          <label class="taille-chip${l.tailles[t].checked ? " checked" : ""}">
+            <input type="checkbox" class="pkgline-taillecheck" data-idx="${i}" data-taille="${t}" ${l.tailles[t].checked ? "checked" : ""}>
+            <span>${t}</span>
+            <input type="number" min="1" step="1" class="pkgline-tailleqty" data-idx="${i}" data-taille="${t}" value="${l.tailles[t].quantite}" ${l.tailles[t].checked ? "" : "disabled"}>
+          </label>`).join("")}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function newPkgLine(produitId) {
+  return {
+    produitId,
+    tailles: {
+      Petit: { checked: true, quantite: 1 },
+      Moyen: { checked: false, quantite: 1 },
+      Grand: { checked: false, quantite: 1 },
+    },
+  };
 }
 
 function resetProspectForm() {
@@ -556,7 +607,23 @@ function fillProspectForm(p) {
   document.getElementById("pf-statut").value = p.statut || "Nouveau";
   document.getElementById("pf-autre").value = p.autre || "";
   document.getElementById("pf-notes").value = p.notes || "";
-  pkgLines = (p.packaging || []).map(l => ({ ...l }));
+
+  const grouped = {};
+  (p.packaging || []).forEach(entry => {
+    if (!grouped[entry.produitId]) {
+      grouped[entry.produitId] = {
+        produitId: entry.produitId,
+        tailles: {
+          Petit: { checked: false, quantite: 1 },
+          Moyen: { checked: false, quantite: 1 },
+          Grand: { checked: false, quantite: 1 },
+        },
+      };
+    }
+    grouped[entry.produitId].tailles[entry.taille] = { checked: true, quantite: entry.quantite || 1 };
+  });
+  pkgLines = Object.values(grouped);
+
   renderPkgPicker();
   renderPkgLines();
   document.getElementById("prospectFormTitle").textContent = "Modifier la fiche — " + p.entreprise;
@@ -613,7 +680,9 @@ function saveProspectFromForm() {
     email: document.getElementById("pf-email").value.trim(),
     adresse: document.getElementById("pf-adresse").value.trim(),
     statut: document.getElementById("pf-statut").value,
-    packaging: pkgLines.map(l => ({ produitId: l.produitId, quantite: Number(l.quantite) || 1, taille: l.taille })),
+    packaging: pkgLines.flatMap(l => TAILLES.filter(t => l.tailles[t].checked).map(t => ({
+      produitId: l.produitId, taille: t, quantite: Number(l.tailles[t].quantite) || 1,
+    }))),
     autre: document.getElementById("pf-autre").value.trim(),
     notes: document.getElementById("pf-notes").value.trim(),
   };
@@ -1134,11 +1203,10 @@ function renderReglages() {
   const rowsHtml = [];
   state.produits.forEach(p => {
     if (search && !p.nom.toLowerCase().includes(search)) return;
-    TAILLES.forEach(t => {
+    TAILLES.forEach((t, ti) => {
       rowsHtml.push(`
       <tr>
-        <td>${escapeHtml(p.nom)}</td>
-        <td><span class="pill pill-gray">${CAT_LABEL[p.cat]}</span></td>
+        ${ti === 0 ? `<td rowspan="3">${productThumb(p.id, 44)}</td><td rowspan="3">${escapeHtml(p.nom)}</td><td rowspan="3"><span class="pill pill-gray">${CAT_LABEL[p.cat]}</span></td>` : ""}
         <td><span class="pill pill-gray">${t}</span></td>
         <td><input type="number" min="0" step="1" class="catalog-achat" data-id="${p.id}" data-taille="${t}" value="${p.prix[t].achat || 0}"></td>
         <td><input type="number" min="0" step="1" class="catalog-vente" data-id="${p.id}" data-taille="${t}" value="${p.prix[t].vente || 0}"></td>
@@ -1148,7 +1216,7 @@ function renderReglages() {
   });
 
   document.getElementById("catalogTbl").innerHTML = `
-    <thead><tr><th>Produit</th><th>Matière</th><th>Format</th><th>Prix d'achat (FCFA)</th><th>Prix de vente (FCFA)</th><th>Seuil d'alerte</th></tr></thead>
+    <thead><tr><th>Photo</th><th>Produit</th><th>Matière</th><th>Format</th><th>Prix d'achat (FCFA)</th><th>Prix de vente (FCFA)</th><th>Seuil d'alerte</th></tr></thead>
     <tbody>${rowsHtml.join("")}</tbody>`;
 
   document.getElementById("fbConfig").value = state.settings.firebaseConfig || "";
@@ -1198,17 +1266,31 @@ function bindEvents() {
     if (!btn) return;
     const id = btn.dataset.id;
     if (pkgLines.some(l => l.produitId === id)) { toast("Ce produit est déjà dans la liste."); return; }
-    pkgLines.push({ produitId: id, quantite: 1, taille: "Petit" });
+    pkgLines.push(newPkgLine(id));
     renderPkgPicker();
     renderPkgLines();
   });
   document.getElementById("pkgLines").addEventListener("input", (e) => {
-    const qtyInput = e.target.closest(".pkgline-qty");
-    if (qtyInput) pkgLines[Number(qtyInput.dataset.idx)].quantite = Number(qtyInput.value) || 1;
+    const qtyInput = e.target.closest(".pkgline-tailleqty");
+    if (qtyInput) pkgLines[Number(qtyInput.dataset.idx)].tailles[qtyInput.dataset.taille].quantite = Number(qtyInput.value) || 1;
   });
   document.getElementById("pkgLines").addEventListener("change", (e) => {
-    const tailleSel = e.target.closest(".pkgline-taille");
-    if (tailleSel) pkgLines[Number(tailleSel.dataset.idx)].taille = tailleSel.value;
+    const tailleCheck = e.target.closest(".pkgline-taillecheck");
+    const allCheck = e.target.closest(".pkgline-allcheck");
+    if (tailleCheck) {
+      const idx = Number(tailleCheck.dataset.idx);
+      pkgLines[idx].tailles[tailleCheck.dataset.taille].checked = tailleCheck.checked;
+      if (TAILLES.every(t => !pkgLines[idx].tailles[t].checked)) {
+        toast("Sélectionnez au moins un format pour ce produit.", "error");
+        pkgLines[idx].tailles[tailleCheck.dataset.taille].checked = true;
+      }
+      renderPkgLines();
+    }
+    if (allCheck) {
+      const idx = Number(allCheck.dataset.idx);
+      TAILLES.forEach(t => { pkgLines[idx].tailles[t].checked = allCheck.checked; });
+      renderPkgLines();
+    }
   });
   document.getElementById("pkgLines").addEventListener("click", (e) => {
     const delBtn = e.target.closest(".pkgline-del");
